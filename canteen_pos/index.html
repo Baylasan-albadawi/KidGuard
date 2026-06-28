@@ -1,0 +1,553 @@
+<!--
+  KidGuard Canteen POS (static HTML)
+
+  WHERE TO EDIT THE MENU PER CANTEEN (recommended):
+  • Firebase Console → Realtime Database → node "products/{productId}"
+    Fields: name, price, allergens ([]), emoji, cat (category), active (true|false), optional allergenMask (int).
+
+  Alternate (dev / template):
+  • Edit database/seed_products.json in this repo, then paste import into Firebase Console.
+
+  This page loads /products live. If Firebase is unreachable or empty, LOCAL_MENU_FALLBACK is used.
+
+  FIREBASE_WEB_CONFIG must match your Web app registration (same project as RTDB URL).
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KidGuard — Canteen</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F4EFE6;--white:#FFFFFF;--green:#1E9E56;--green-lt:#E8F7EE;
+  --red:#E0312A;--red-lt:#FDECEC;--text:#1A1A1A;--muted:#7A7A7A;
+  --border:#E8E2D9;--sh:0 2px 10px rgba(0,0,0,0.07);--r:14px;
+  --font:'Nunito',sans-serif;
+}
+body{font-family:var(--font);background:var(--cream);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--white);padding:14px 24px;display:flex;align-items:center;gap:14px;border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px}
+.logo .icon{width:38px;height:38px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo .brand{font-size:20px;font-weight:900;letter-spacing:-0.5px}
+.logo .sub{font-size:12px;color:var(--muted);font-weight:600}
+.search{display:flex;align-items:center;background:var(--cream);border:1.5px solid var(--border);border-radius:50px;padding:8px 16px;gap:8px;flex:1;max-width:380px;margin:0 auto}
+.search input{border:none;background:none;outline:none;font-family:var(--font);font-size:14px;color:var(--text);width:100%}
+.search input::placeholder{color:var(--muted)}
+.hdr{display:flex;align-items:center;gap:10px;margin-left:auto}
+.conn{font-size:12px;font-weight:700;padding:5px 12px;border-radius:50px;background:var(--green-lt);color:var(--green);display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.clock{font-size:13px;font-weight:700;color:var(--muted)}
+.menu-src{font-size:11px;color:var(--muted);margin-left:auto}
+.layout{display:grid;grid-template-columns:300px 1fr 320px;flex:1;height:calc(100vh - 69px)}
+.col{display:flex;flex-direction:column;border-right:1.5px solid var(--border);overflow:hidden}
+.col:last-child{border-right:none}
+.col-head{padding:16px 20px 12px;background:var(--white);border-bottom:1.5px solid var(--border);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.col-body{flex:1;overflow-y:auto;padding:16px}
+
+.child-waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:20px}
+.rfid-ring{width:88px;height:88px;border-radius:50%;border:3px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:34px;animation:rp 2.4s ease-in-out infinite}
+@keyframes rp{0%,100%{border-color:var(--border)}50%{border-color:var(--green)}}
+.wt{font-size:16px;font-weight:800}
+.ws{font-size:13px;color:var(--muted);font-weight:600;line-height:1.5}
+.demo-btn{width:100%;padding:10px 14px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:8px}
+.demo-btn:hover{border-color:var(--green);background:var(--green-lt);color:var(--green)}
+.da{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#child-card{display:none}
+.c-hdr{background:var(--white);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px}
+.c-av{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1E9E56,#0D6B38);color:#fff;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.c-name{font-size:18px;font-weight:900}
+.c-meta{font-size:12px;color:var(--muted);font-weight:600}
+.iblock{background:var(--white);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.iblock-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px}
+.irow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:5px 0}
+.il{color:var(--muted);font-weight:600}
+.iv{font-weight:800}
+.achips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.achip{background:var(--red-lt);border:1.5px solid #F5C4C4;color:var(--red);font-size:11px;font-weight:800;padding:3px 10px;border-radius:50px}
+.noal{font-size:13px;color:var(--muted);font-weight:600;font-style:italic}
+.bal-block{background:var(--green);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:10px;color:#fff;margin-bottom:10px}
+.ba{font-size:22px;font-weight:900}
+.bl{font-size:12px;font-weight:600;opacity:.8}
+.reset-btn{width:100%;padding:10px;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s}
+.reset-btn:hover{border-color:var(--text);color:var(--text)}
+
+.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex-shrink:0;padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--white);font-family:var(--font);font-size:13px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s}
+.cat:hover{border-color:var(--green);color:var(--green)}
+.cat.active{background:var(--green);border-color:var(--green);color:#fff}
+.banner{background:linear-gradient(120deg,#1A5C36,#1E9E56);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden}
+.banner::after{content:'🛒';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.2}
+.bt{font-size:18px;font-weight:900;margin-bottom:4px}
+.bs{font-size:13px;font-weight:600;opacity:.8}
+.sec{font-size:18px;font-weight:900;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sec span{font-size:13px;color:var(--green);font-weight:700;cursor:pointer}
+.food-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fc{background:var(--white);border-radius:var(--r);padding:14px 12px 12px;cursor:pointer;transition:all .15s;position:relative;box-shadow:var(--sh);border:2px solid transparent;user-select:none}
+.fc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.fc.in-cart{border-color:var(--green);background:var(--green-lt)}
+.fc.danger{border-color:#F5C4C4!important;background:var(--red-lt)!important}
+.fe{font-size:36px;display:block;text-align:center;margin-bottom:8px}
+.fn{font-size:13px;font-weight:800;text-align:center;margin-bottom:4px;line-height:1.3}
+.fp{font-size:12px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:8px}
+.add-btn{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;border:none;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;transition:all .15s;line-height:1}
+.qty-row{display:flex;align-items:center;justify-content:center;gap:8px}
+.qb{width:26px;height:26px;border-radius:50%;border:2px solid var(--green);background:transparent;color:var(--green);font-size:16px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qb:hover{background:var(--green);color:#fff}
+.qn{font-size:15px;font-weight:900;color:var(--green);min-width:18px;text-align:center}
+.dtag{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em}
+
+.cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);text-align:center}
+.cart-empty .ci{font-size:52px;opacity:.4}
+.cart-list{margin-bottom:14px}
+.cart-item{background:var(--white);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;box-shadow:var(--sh)}
+.cie{font-size:22px}
+.cii{flex:1}
+.cin{font-size:13px;font-weight:800}
+.cis{font-size:11px;color:var(--muted);font-weight:600}
+.cip{font-size:13px;font-weight:900;color:var(--green)}
+.cir{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px;transition:all .15s}
+.cir:hover{background:var(--red-lt);color:var(--red)}
+.cart-sum{background:var(--white);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)}
+.sr{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;font-weight:600}
+.sr.tot{font-size:16px;font-weight:900;border-top:1.5px solid var(--border);margin-top:6px;padding-top:10px}
+.sr.tot .tv{color:var(--green)}
+.checkout{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:15px;font-weight:900;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.checkout:hover:not(:disabled){background:#167A42}
+.checkout:disabled{opacity:.4;cursor:not-allowed}
+
+.res-overlay{display:none;flex-direction:column;gap:12px;padding-top:4px}
+.rbanner{border-radius:var(--r);padding:24px 20px;text-align:center}
+.rbanner.approved{background:var(--green-lt);border:2px solid var(--green)}
+.rbanner.denied{background:var(--red-lt);border:2px solid var(--red)}
+.ri{font-size:44px;margin-bottom:8px}
+.rw{font-size:26px;font-weight:900;letter-spacing:1.5px}
+.rw.ok{color:var(--green)}
+.rw.no{color:var(--red)}
+.rr{font-size:13px;color:var(--muted);font-weight:600;margin-top:5px;line-height:1.5}
+.rit{background:var(--white);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.rirow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+.rirow:last-child{border-bottom:none;font-weight:900}
+.ril{color:var(--muted);font-weight:600}
+.riv{font-weight:800}
+.done-btn{width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:900;cursor:pointer}
+.back-btn{width:100%;padding:11px;background:transparent;border:1.5px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;margin-top:8px}
+.logbar{background:var(--white);border-top:1.5px solid var(--border);padding:8px 24px;font-size:12px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
+.ltag{color:var(--green);font-weight:800}
+@media(max-width:980px){.layout{grid-template-columns:1fr;grid-auto-rows:auto}.col{border-right:none;border-bottom:1.5px solid var(--border)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="icon">🛡️</div>
+    <div>
+      <div class="brand">KidGuard</div>
+      <div class="sub">School Canteen</div>
+    </div>
+  </div>
+  <div class="search">
+    <span style="font-size:15px;color:var(--muted)">🔍</span>
+    <input type="text" placeholder="Search menu…" id="search-input" oninput="filterMenu()"/>
+  </div>
+  <div class="hdr">
+    <div class="conn"><div class="dot"></div><span id="conn-label">Starting…</span></div>
+    <div id="menu-src-badge" class="menu-src"></div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="col">
+    <div class="col-head">📡 Wristband scan</div>
+    <div class="col-body">
+      <div class="child-waiting" id="child-waiting">
+        <div class="rfid-ring">📶</div>
+        <div class="wt">Waiting for wristband…</div>
+        <div class="ws">Ask the child to tap<br/>the wristband on the reader</div>
+        <div style="width:100%;margin-top:8px">
+          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Demo — tap to scan</div>
+          <button type="button" class="demo-btn" onclick="connectArduino()">Connect Arduino</button>
+          <button type="button" class="demo-btn" onclick="simulateScan('c1')">
+            <div class="da">A</div>Ahmad · Peanuts, Tree Nuts
+          </button>
+          <button type="button" class="demo-btn" onclick="simulateScan('c2')" style="margin-top:8px">
+            <div class="da" style="background:#E0312A">S</div>Sara · Milk, Eggs
+          </button>
+        </div>
+      </div>
+      <div id="child-card">
+        <div class="c-hdr">
+          <div class="c-av" id="c-av">A</div>
+          <div><div class="c-name" id="c-name">—</div><div class="c-meta" id="c-meta">—</div></div>
+        </div>
+        <div class="iblock">
+          <div class="iblock-t">Student info</div>
+          <div class="irow"><span class="il">Student ID</span><span class="iv" id="c-id">—</span></div>
+          <div class="irow"><span class="il">RFID tag</span><span class="iv" style="font-size:12px" id="c-rfid">—</span></div>
+        </div>
+        <div class="iblock">
+          <div class="iblock-t">⚠️ Allergens</div>
+          <div class="achips" id="c-allergens"></div>
+        </div>
+        <div class="bal-block">
+          <span style="font-size:24px">💳</span>
+          <div><div class="ba" id="c-bal">0.00 NIS</div><div class="bl">Canteen balance</div></div>
+        </div>
+        <button type="button" class="reset-btn" onclick="resetScan()">↩ Scan a different wristband</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="col-head">🍽️ Menu</div>
+    <div class="col-body">
+      <div class="cats" id="cats"></div>
+      <div class="banner">
+        <div class="bt">School Canteen Menu</div>
+        <div class="bs">Items from Firebase `/products` — allergens checked automatically</div>
+      </div>
+      <div class="sec">Available today <span onclick="clearCart()">Clear cart</span></div>
+      <div class="food-grid" id="food-grid"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="col-head">🛒 Cart</div>
+    <div class="col-body">
+      <div class="cart-empty" id="cart-empty">
+        <div class="ci">🛒</div>
+        <p>Your cart is empty</p>
+        <small>Select items from the menu</small>
+      </div>
+      <div id="cart-content" style="display:none">
+        <div class="cart-list" id="cart-list"></div>
+        <div class="cart-sum" id="cart-sum"></div>
+        <button type="button" class="checkout" id="checkout" onclick="processTransaction()">⚡ Process Purchase</button>
+      </div>
+      <div class="res-overlay" id="res-overlay">
+        <div class="rbanner" id="rbanner">
+          <div class="ri" id="ri">—</div>
+          <div class="rw" id="rw">—</div>
+          <div class="rr" id="rr"></div>
+        </div>
+        <div class="rit" id="rit"></div>
+        <button type="button" class="done-btn" onclick="confirmAndReset()">✓ Done — next customer</button>
+        <button type="button" class="back-btn" onclick="backToCart()">← Edit cart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="logbar"><span class="ltag">[LOG]</span><span id="log-msg">Loading…</span></div>
+
+<script>
+/* Must match Flutter lib/firebase_options.dart (Web) + Realtime Database URL */
+const FIREBASE_WEB_CONFIG = {
+  apiKey: "AIzaSyCwf-g2AydH4u0QzGxiqdqMbIgkADSA4Uo",
+  authDomain: "kidguard-fadf9.firebaseapp.com",
+  projectId: "kidguard-fadf9",
+  storageBucket: "kidguard-fadf9.firebasestorage.app",
+  messagingSenderId: "1002940114886",
+  appId: "1:1002940114886:web:f1f3b43ea3a6a5e9c034c7",
+  databaseURL: "https://kidguard-fadf9-default-rtdb.firebaseio.com",
+  measurementId: "G-1SNSCM8XL8"
+};
+
+/* Used only if RTDB has no products or before first snapshot / on error */
+const LOCAL_MENU_FALLBACK = [
+  {id:"f1",name:"Cheese Sandwich",price:3.00,allergens:["Milk","Wheat"],emoji:"🥪",cat:"Sandwiches"},
+  {id:"f2",name:"Peanut Butter Wrap",price:2.50,allergens:["Peanuts","Wheat"],emoji:"🌯",cat:"Sandwiches"},
+  {id:"f3",name:"Tuna Salad",price:4.00,allergens:["Fish"],emoji:"🥗",cat:"Salads"},
+  {id:"f4",name:"Plain Rice",price:1.50,allergens:[],emoji:"🍚",cat:"Mains"},
+  {id:"f5",name:"Egg Sandwich",price:2.00,allergens:["Eggs","Wheat"],emoji:"🥚",cat:"Sandwiches"},
+  {id:"f6",name:"Fruit Cup",price:2.00,allergens:[],emoji:"🍓",cat:"Snacks"},
+  {id:"f7",name:"Almond Cake",price:3.50,allergens:["Tree Nuts","Milk","Eggs"],emoji:"🍰",cat:"Sweets"},
+  {id:"f8",name:"Hummus Plate",price:2.50,allergens:[],emoji:"🫓",cat:"Snacks"},
+  {id:"f9",name:"Chicken Rice",price:5.00,allergens:[],emoji:"🍗",cat:"Mains"},
+  {id:"f10",name:"Apple Juice",price:1.50,allergens:[],emoji:"🍎",cat:"Drinks"},
+  {id:"f11",name:"Water Bottle",price:1.00,allergens:[],emoji:"💧",cat:"Drinks"},
+  {id:"f12",name:"Chocolate Muffin",price:2.50,allergens:["Milk","Eggs","Wheat"],emoji:"🧁",cat:"Sweets"},
+];
+
+let FOODS = [];
+let menuSourceLabel = '';
+let activeCat='All',db=null,cart={},currentChild=null;
+
+const CHILDREN={
+  c1:{name:"Ahmad",age:8,rfid:"29 40 3B 12",allergens:["Peanuts","Tree Nuts"],balance:15.50},
+  c2:{name:"Sara",age:6,rfid:"96 C9 B8 B8",allergens:["Milk","Eggs"],balance:8.00},
+};
+
+function setMenuFromFirebase(snapshotVal){
+  if(!snapshotVal || typeof snapshotVal !== 'object'){
+    FOODS = LOCAL_MENU_FALLBACK.map(x=>Object.assign({},x));
+    menuSourceLabel = 'Fallback (no /products)';
+    return;
+  }
+  const rows=[];
+  for(const [id,v] of Object.entries(snapshotVal)){
+    if(!v||typeof v!=='object') continue;
+    if(v.active===false) continue;
+    rows.push({
+      id,
+      name:String(v.name||'Unnamed'),
+      price:Number(v.price)||0,
+      allergens:Array.isArray(v.allergens)?v.allergens.map(String):[],
+      emoji:v.emoji?String(v.emoji):'🍽️',
+      cat:String(v.cat||v.category||'General'),
+    });
+  }
+  rows.sort((a,b)=>a.cat.localeCompare(b.cat)||a.name.localeCompare(b.name));
+  if(rows.length===0){
+    FOODS = LOCAL_MENU_FALLBACK.map(x=>Object.assign({},x));
+    menuSourceLabel = 'Fallback (empty /products)';
+  } else {
+    FOODS = rows;
+    menuSourceLabel = 'Firebase · '+rows.length+' items';
+  }
+  document.getElementById('menu-src-badge').textContent = menuSourceLabel;
+}
+
+let port, reader, readerClosed=false;
+async function connectArduino(){
+  try{
+    if(!navigator.serial){ log("❌ Web Serial API not supported. Use Chrome/Edge."); return; }
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 9600 });
+    log("✅ Arduino connected. Waiting for RFID tags…");
+    readerClosed=false;
+    readData();
+  }catch(err){
+    console.error(err);
+    log("❌ Connection failed: "+err.message);
+  }
+}
+async function readData(){
+  const decoder=new TextDecoder();
+  let buffer="";
+  try{
+    reader=port.readable.getReader();
+    while(!readerClosed){
+      const {value,done}=await reader.read();
+      if(done) break;
+      if(value){
+        buffer+=decoder.decode(value);
+        const lines=buffer.split('\n');
+        for(let i=0;i<lines.length-1;i++){
+          const line=lines[i].trim();
+          if(line.length>0){ log("📍 Serial: "+line); handleSerialLine(line); }
+        }
+        buffer=lines[lines.length-1];
+      }
+    }
+  }finally{
+    if(reader) reader.releaseLock();
+    readerClosed=true;
+  }
+}
+const RFID_MAP={"96 C9 B8 B8":"c2","29 40 3B 12":"c1"};
+function normalizeTag(raw){
+  return String(raw||'').trim().toUpperCase().replace(/\s+/g,' ');
+}
+function handleRFID(uid){
+  const tag=normalizeTag(uid);
+  if(!tag) return;
+  if(RFID_MAP[tag]) loadChild(RFID_MAP[tag]);
+  else log("Unknown RFID card: "+tag);
+}
+function handleSerialLine(line){
+  const s=String(line||'').trim();
+  if(!s) return;
+  if(s.startsWith('CHILD:')){ handleRFID(s.slice('CHILD:'.length)); return; }
+  if(s.startsWith('PRODUCT:')){ log('Product tag scanned: '+s.slice('PRODUCT:'.length).trim()); return; }
+  if(/^[0-9A-F]{2}(\s+[0-9A-F]{2})+$/.test(normalizeTag(s))){ handleRFID(s); }
+}
+
+try{
+  firebase.initializeApp(FIREBASE_WEB_CONFIG);
+  db=firebase.database();
+  document.getElementById('conn-label').textContent='Connected';
+  db.ref('/products').on('value',snap=>{
+    setMenuFromFirebase(snap.val());
+    log("Menu updated — "+FOODS.length+" items");
+    renderCats();
+    renderMenu(document.getElementById('search-input').value);
+    updateCart();
+  },err=>{
+    console.error(err);
+    setMenuFromFirebase(null);
+    renderCats(); renderMenu(document.getElementById('search-input').value); updateCart();
+    log('⚠️ products read error — '+err.message);
+  });
+  db.ref('/pos/scan').on('value',snap=>{
+    const d=snap.val();
+    if(d&&d.childId) loadChild(String(d.childId));
+  });
+  db.ref('/students').once('value',snap=>{
+    const fbStudents=snap.val();
+    if(fbStudents){ Object.assign(CHILDREN,fbStudents); log("✅ Student data synced from Firebase"); }
+  });
+  log("Firebase ready. Loading /products …");
+}catch(e){
+  document.getElementById('conn-label').textContent='Demo';
+  setMenuFromFirebase(null);
+  console.error(e);
+  log("⚠️ Firebase offline — "+(e.message||e));
+}
+
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8);},1000);
+document.getElementById('clock').textContent=new Date().toTimeString().slice(0,8);
+
+function renderCats(){
+  const cats=['All',...new Set(FOODS.map(f=>f.cat))];
+  document.getElementById('cats').innerHTML=cats.map(c=>'<button type="button" class="cat'+(c===activeCat?' active':'')+'" onclick="setCat(\''+c.replace(/'/g,"\\'")+'\')">'+escapeHtml(c)+'</button>').join('');
+}
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function setCat(c){activeCat=c;renderCats();renderMenu();}
+
+function renderMenu(q=''){
+  const ca=currentChild?currentChild.allergens:[];
+  const qi=(q||'').toLowerCase();
+  const items=FOODS.filter(f=>(activeCat==='All'||f.cat===activeCat)&&(f.name.toLowerCase().includes(qi)));
+  if(!items.length){document.getElementById('food-grid').innerHTML='<p style="color:var(--muted);font-size:13px;font-weight:600;grid-column:1/-1">No items found</p>';return;}
+  document.getElementById('food-grid').innerHTML=items.map(f=>{
+    const bad=f.allergens.filter(a=>ca.map(x=>String(x).toLowerCase().trim()).includes(String(a).toLowerCase().trim()));
+    const danger=bad.length>0;
+    const qty=cart[f.id]||0;
+    const inCart=qty>0;
+    const cls='fc'+(inCart&&!danger?' in-cart':'')+(danger?' danger':'');
+    const action=danger?'<div style="font-size:10px;font-weight:800;color:var(--red);text-align:center;margin-top:4px">⚠ ALLERGEN</div>':
+      inCart?'<div class="qty-row"><button type="button" class="qb" onclick="chQty(\''+f.id+'\',-1,event)">−</button><span class="qn">'+qty+'</span><button type="button" class="qb" onclick="chQty(\''+f.id+'\',1,event)">+</button></div>':
+      '<button type="button" class="add-btn" onclick="addItem(\''+f.id+'\',event)">+</button>';
+    return'<div class="'+cls+'" onclick="cardClick(\''+f.id+'\')">'+(danger?'<div class="dtag">DANGER</div>':'')+'<span class="fe">'+(f.emoji||'🍽️')+'</span><div class="fn">'+escapeHtml(f.name)+'</div><div class="fp">'+(f.price||0).toFixed(2)+' NIS</div>'+action+'</div>';
+  }).join('');
+}
+function filterMenu(){renderMenu(document.getElementById('search-input').value);}
+function allergensMatchAny(childList, foodAllergens){
+  const ca=(childList||[]).map(a=>String(a).toLowerCase().trim());
+  return (foodAllergens||[]).some(a=>ca.includes(String(a).toLowerCase().trim()));
+}
+function cardClick(id){const f=FOODS.find(x=>x.id===id);if(!f)return;const ca=currentChild?currentChild.allergens:[];if(allergensMatchAny(ca,f.allergens))return;if(!cart[id])addById(id);}
+function addItem(id,e){if(e)e.stopPropagation();addById(id);}
+function addById(id){cart[id]=(cart[id]||0)+1;updateCart();}
+function chQty(id,d,e){if(e)e.stopPropagation();cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];updateCart();}
+function clearCart(){cart={};updateCart();}
+
+function updateCart(){
+  const keys=Object.keys(cart);
+  const empty=keys.length===0;
+  document.getElementById('cart-empty').style.display=empty?'flex':'none';
+  document.getElementById('cart-content').style.display=empty?'none':'block';
+  if(!empty){
+    let total=0,html='';
+    keys.forEach(id=>{
+      const f=FOODS.find(x=>x.id===id); if(!f)return;
+      const sub=f.price*cart[id];total+=sub;
+      html+='<div class="cart-item"><span class="cie">'+(f.emoji||'🍽️')+'</span><div class="cii"><div class="cin">'+escapeHtml(f.name)+'</div><div class="cis">× '+cart[id]+'</div></div><span class="cip">'+sub.toFixed(2)+' NIS</span><button type="button" class="cir" onclick="chQty(\''+id+'\',-999,event)">✕</button></div>';
+    });
+    document.getElementById('cart-list').innerHTML=html;
+    const bal=currentChild?currentChild.balance:0;
+    const ok=!currentChild||bal>=total;
+    document.getElementById('cart-sum').innerHTML='<div class="sr"><span>Items</span><span>'+keys.length+' type'+(keys.length>1?'s':'')+'</span></div><div class="sr tot"><span>Total</span><span class="tv">'+total.toFixed(2)+' NIS</span></div>'+(currentChild?'<div class="sr" style="margin-top:6px;font-size:12px"><span style="color:var(--muted);font-weight:600">Balance</span><span style="color:'+(ok?'var(--green)':'var(--red)')+';font-weight:800">'+bal.toFixed(2)+' NIS</span></div>':'');
+    document.getElementById('checkout').disabled=!currentChild;
+  }
+  renderMenu(document.getElementById('search-input').value);
+}
+
+function processTransaction(){
+  if(!currentChild||!Object.keys(cart).length)return;
+  const ca=currentChild.allergens.map(String);
+  let total=0,blocked=[],items=[];
+  Object.keys(cart).forEach(id=>{
+    const f=FOODS.find(x=>x.id===id); if(!f) return;
+    const sub=f.price*cart[id];total+=sub;
+    items.push({f,qty:cart[id],sub});
+    const bad=f.allergens.filter(a=>ca.some(x=>x.toLowerCase().trim()===String(a).toLowerCase().trim()));
+    if(bad.length) blocked.push(f.name+' ('+bad.join(', ')+')');
+  });
+  let approved=false,reason='';
+  if(blocked.length) reason='Allergen in: '+blocked.join('; ');
+  else if(currentChild.balance<total) reason='Not enough balance — needs '+total.toFixed(2)+' NIS, has '+currentChild.balance.toFixed(2)+' NIS';
+  else{approved=true;reason='All checks passed ✓';}
+  showResult(approved,reason,items,total);
+  if(approved){
+    currentChild.balance-=total;
+    if(CHILDREN[currentChild.id]) CHILDREN[currentChild.id].balance-=total;
+    document.getElementById('c-bal').textContent=currentChild.balance.toFixed(2)+' NIS';
+    if(db){ db.ref('/students/'+currentChild.id+'/balance').set(currentChild.balance).catch(()=>{}); }
+  }
+  if(db){
+    const transactionId='tx_'+Date.now();
+    db.ref('/transactions/'+transactionId).set({
+      childId:currentChild.id,
+      childName:currentChild.name,
+      approved:approved,
+      reason:reason,
+      total:+total.toFixed(2),
+      items:items.map(i=>({name:i.f.name,qty:i.qty,price:i.f.price})),
+      timestamp:new Date().toISOString(),
+      balanceAfter:approved ? +currentChild.balance.toFixed(2):null,
+    }).catch(()=>{});
+  }
+  log('Transaction: '+currentChild.name+' → '+(approved?'✅':'❌')+' — '+total.toFixed(2)+' NIS');
+}
+
+function showResult(approved,reason,items,total){
+  document.getElementById('cart-content').style.display='none';
+  document.getElementById('cart-empty').style.display='none';
+  document.getElementById('res-overlay').style.display='flex';
+  document.getElementById('rbanner').className='rbanner '+(approved?'approved':'denied');
+  document.getElementById('ri').textContent=approved?'✅':'❌';
+  document.getElementById('rw').textContent=approved?'APPROVED':'DENIED';
+  document.getElementById('rw').className='rw '+(approved?'ok':'no');
+  document.getElementById('rr').textContent=reason;
+  document.getElementById('rit').innerHTML=items.map(i=>'<div class="rirow"><span class="ril">'+(i.f.emoji||'')+' '+escapeHtml(i.f.name)+' ×'+i.qty+'</span><span class="riv">'+i.sub.toFixed(2)+' NIS</span></div>').join('')+'<div class="rirow"><span class="ril">Total</span><span class="riv" style="color:var(--green)">'+total.toFixed(2)+' NIS</span></div>';
+}
+function backToCart(){document.getElementById('res-overlay').style.display='none';updateCart();}
+function confirmAndReset(){cart={};document.getElementById('res-overlay').style.display='none';updateCart();log("Done. Ready for next customer.");}
+
+function loadChild(id){
+  const c=CHILDREN[id];if(!c){log('Unknown child: '+id);return;}
+  currentChild={id,...c};
+  document.getElementById('child-waiting').style.display='none';
+  document.getElementById('child-card').style.display='block';
+  document.getElementById('c-av').textContent=c.name[0];
+  document.getElementById('c-name').textContent=c.name;
+  document.getElementById('c-meta').textContent='Age '+c.age;
+  document.getElementById('c-id').textContent=String(id).toUpperCase();
+  document.getElementById('c-rfid').textContent=c.rfid||'';
+  document.getElementById('c-bal').textContent=(c.balance||0).toFixed(2)+' NIS';
+  document.getElementById('c-allergens').innerHTML=c.allergens&&c.allergens.length?c.allergens.map(a=>'<span class="achip">⚠ '+escapeHtml(String(a))+'</span>').join(''):'<span class="noal">No allergens registered</span>';
+  renderMenu(document.getElementById('search-input').value);updateCart();
+  if(db){
+    db.ref('/students/'+id+'/balance').once('value',snap=>{
+      const fbBalance=snap.val();
+      if(fbBalance!=null){
+        currentChild.balance=+fbBalance;
+        CHILDREN[id].balance=+fbBalance;
+        document.getElementById('c-bal').textContent=currentChild.balance.toFixed(2)+' NIS';
+      }
+    });
+  }
+  log('✓ Loaded: '+c.name);
+}
+function simulateScan(id){loadChild(id);}
+function resetScan(){currentChild=null;cart={};document.getElementById('child-card').style.display='none';document.getElementById('child-waiting').style.display='flex';document.getElementById('res-overlay').style.display='none';renderMenu();updateCart();log('Reset. Waiting for scan.');}
+function log(m){document.getElementById('log-msg').textContent=m;}
+
+/* Initial paint before first Firebase snapshot */
+setMenuFromFirebase(null);
+renderCats();
+renderMenu();
+updateCart();
+</script>
+</body>
+</html>

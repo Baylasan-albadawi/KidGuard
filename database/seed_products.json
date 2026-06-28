@@ -1,0 +1,158 @@
+{
+  "_comment": "Import under Realtime Database root key: \"products\". Allergen bits match lib/allergen_catalog.dart order (see allergenMask). Supports 14 major allergens under EU Regulation 1169/2011 using 14-bit bitmask.",
+  "products": {
+    "f1": {
+      "name": "Cheese Sandwich",
+      "price": 3,
+      "allergens": ["Milk", "Wheat"],
+      "emoji": "🥪",
+      "cat": "Sandwiches",
+      "active": true,
+      "allergenMask": 20
+    },
+    "f2": {
+      "name": "Peanut Butter Wrap",
+      "price": 2.5,
+      "allergens": ["Peanuts", "Wheat"],
+      "emoji": "🌯",
+      "cat": "Sandwiches",
+      "active": true,
+      "allergenMask": 17
+    },
+    "f3": {
+      "name": "Tuna Salad",
+      "price": 4,
+      "allergens": ["Fish"],
+      "emoji": "🥗",
+      "cat": "Salads",
+      "active": true,
+      "allergenMask": 64
+    },
+    "f4": {
+      "name": "Plain Rice",
+      "price": 1.5,
+      "allergens": [],
+      "emoji": "🍚",
+      "cat": "Mains",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f5": {
+      "name": "Egg Sandwich",
+      "price": 2,
+      "allergens": ["Eggs", "Wheat"],
+      "emoji": "🥚",
+      "cat": "Sandwiches",
+      "active": true,
+      "allergenMask": 24
+    },
+    "f6": {
+      "name": "Fruit Cup",
+      "price": 2,
+      "allergens": [],
+      "emoji": "🍓",
+      "cat": "Snacks",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f7": {
+      "name": "Almond Cake",
+      "price": 3.5,
+      "allergens": ["Tree Nuts", "Milk", "Eggs"],
+      "emoji": "🍰",
+      "cat": "Sweets",
+      "active": true,
+      "allergenMask": 14
+    },
+    "f8": {
+      "name": "Hummus Plate",
+      "price": 2.5,
+      "allergens": [],
+      "emoji": "🫓",
+      "cat": "Snacks",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f9": {
+      "name": "Chicken Rice",
+      "price": 5,
+      "allergens": [],
+      "emoji": "🍗",
+      "cat": "Mains",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f10": {
+      "name": "Apple Juice",
+      "price": 1.5,
+      "allergens": [],
+      "emoji": "🍎",
+      "cat": "Drinks",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f11": {
+      "name": "Water Bottle",
+      "price": 1,
+      "allergens": [],
+      "emoji": "💧",
+      "cat": "Drinks",
+      "active": true,
+      "allergenMask": 0
+    },
+    "f12": {
+      "name": "Chocolate Muffin",
+      "price": 2.5,
+      "allergens": ["Milk", "Eggs", "Wheat"],
+      "emoji": "🧁",
+      "cat": "Sweets",
+      "active": true,
+      "allergenMask": 28
+    },
+    "f13": {
+      "name": "Celery Soup",
+      "price": 3,
+      "allergens": ["Celery"],
+      "emoji": "🥘",
+      "cat": "Mains",
+      "active": true,
+      "allergenMask": 512
+    },
+    "f14": {
+      "name": "Mustard Dressing",
+      "price": 1,
+      "allergens": ["Mustard"],
+      "emoji": "🫙",
+      "cat": "Condiments",
+      "active": true,
+      "allergenMask": 1024
+    },
+    "f15": {
+      "name": "Mussel Pasta",
+      "price": 5.5,
+      "allergens": ["Mollusks", "Wheat"],
+      "emoji": "🍝",
+      "cat": "Mains",
+      "active": true,
+      "allergenMask": 4112
+    },
+    "f16": {
+      "name": "Grape Juice (with Sulphites)",
+      "price": 2,
+      "allergens": ["Sulphites"],
+      "emoji": "🍇",
+      "cat": "Drinks",
+      "active": true,
+      "allergenMask": 8192
+    },
+    "f17": {
+      "name": "Lupin Bread",
+      "price": 2.5,
+      "allergens": ["Lupin", "Wheat"],
+      "emoji": "🍞",
+      "cat": "Breads",
+      "active": true,
+      "allergenMask": 2064
+    }
+  }
+}

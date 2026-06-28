@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1002940114886",
+    "project_id": "kidguard-fadf9",
+    "storage_bucket": "kidguard-fadf9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002940114886:android:d01c6a4cd3638d18c034c7",
+        "android_client_info": {
+          "package_name": "com.example.kidguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC91Z63QjQ3UT66BQJXri9gLDEY_Y0QlHQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002940114886:android:9195333d78a74111c034c7",
+        "android_client_info": {
+          "package_name": "com.kidguard.kidguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC91Z63QjQ3UT66BQJXri9gLDEY_Y0QlHQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,21 @@
+{
+  "_comment": "Matches the canteen POS HTML demo CHILDREN ids (c1, c2). Import under \"students\". Use \"rfid\" for RFID UIDs.",
+  "students": {
+    "c1": {
+      "name": "Ahmad",
+      "age": 8,
+      "rfid": "29 40 3B 12",
+      "allergens": ["Peanuts", "Tree Nuts"],
+      "balance": 15.5,
+      "parentPhone": ""
+    },
+    "c2": {
+      "name": "Sara",
+      "age": 6,
+      "rfid": "96 C9 B8 B8",
+      "allergens": ["Milk", "Eggs"],
+      "balance": 8,
+      "parentPhone": ""
+    }
+  }
+}

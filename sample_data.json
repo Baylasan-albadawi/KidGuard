@@ -1,0 +1,83 @@
+{
+  "children": {
+    "child_1": {
+      "name": "Lina",
+      "birthdate": "2017-05-12",
+      "age": 8,
+      "wristbandId": "WB-001",
+      "parentPhone": "+970599000000",
+      "balance": 15.0,
+      "allergens": ["Peanuts", "Milk"]
+    },
+    "child_2": {
+      "name": "Omar",
+      "birthdate": "2015-09-03",
+      "age": 10,
+      "wristbandId": "WB-002",
+      "parentPhone": "+970599111111",
+      "balance": 20.0,
+      "allergens": ["Eggs"]
+    }
+  },
+  "sensor_data": {
+    "child_1": {
+      "childId": "child_1",
+      "hr": 88,
+      "spo2": 98,
+      "temp": 36.5,
+      "state": "NORMAL"
+    },
+    "child_2": {
+      "childId": "child_2",
+      "hr": 94,
+      "spo2": 97,
+      "temp": 36.7,
+      "state": "NORMAL"
+    }
+  },
+  "child_1": {
+    "parentNo": "+970599000000"
+  },
+  "child_2": {
+    "parentNo": "+970599111111"
+  },
+  "wristbands": {
+    "child_1": {
+      "childId": "child_1",
+      "heartRate": 88,
+      "panicPressed": false,
+      "connected": true,
+      "timestamp": 1777910000000
+    },
+    "child_2": {
+      "childId": "child_2",
+      "heartRate": 94,
+      "panicPressed": false,
+      "connected": true,
+      "timestamp": 1777910000000
+    }
+  },
+  "products": {
+    "prod_1": {
+      "name": "Cheese Sandwich",
+      "price": 4.0,
+      "allergens": ["Milk", "Wheat"],
+      "active": true
+    },
+    "prod_2": {
+      "name": "Apple Juice",
+      "price": 3.0,
+      "allergens": [],
+      "active": true
+    },
+    "prod_3": {
+      "name": "Peanut Cookie",
+      "price": 2.5,
+      "allergens": ["Peanuts", "Wheat"],
+      "active": true
+    }
+  },
+  "alerts": {},
+  "purchases": {},
+  "pos_scans": {}
+}

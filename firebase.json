@@ -1,0 +1,35 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "buildConfigurations": {
+          ".": {
+            "projectId": "kidguard-fadf9",
+            "appId": "1:1002940114886:android:9195333d78a74111c034c7",
+            "fileOutput": "android/app/google-services.json"
+          }
+        },
+        "default": {
+          "projectId": "kidguard-fadf9",
+          "appId": "1:1002940114886:android:d01c6a4cd3638d18c034c7",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kidguard-fadf9",
+          "configurations": {
+            "android": "1:1002940114886:android:d01c6a4cd3638d18c034c7",
+            "ios": "1:1002940114886:ios:974bedf44794363ac034c7",
+            "macos": "1:1002940114886:ios:974bedf44794363ac034c7",
+            "web": "1:1002940114886:web:f1f3b43ea3a6a5e9c034c7",
+            "windows": "1:1002940114886:web:46bd656a5768f7f7c034c7"
+          }
+        }
+      }
+    }
+  },
+  "database": {
+    "rules": "database.rules.json"
+  }
+}
