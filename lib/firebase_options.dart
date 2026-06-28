@@ -44,53 +44,53 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCwf-g2AydH4u0QzGxiqdqMbIgkADSA4Uo',
-    appId: '1:1002940114886:web:f1f3b43ea3a6a5e9c034c7',
-    messagingSenderId: '1002940114886',
-    projectId: 'kidguard-fadf9',
-    authDomain: 'kidguard-fadf9.firebaseapp.com',
-    storageBucket: 'kidguard-fadf9.firebasestorage.app',
-    measurementId: 'G-1SNSCM8XL8',
+    apiKey: 'YOUR-API-KEY',
+    appId: 'APP-ID',
+    messagingSenderId: 'ID',
+    projectId: 'YOUR-PROJECT-ID',
+    authDomain: 'AUTH-DOMAIN',
+    storageBucket: 'BUCKET',
+    measurementId: 'MEASUREMENT-ID',
     databaseURL: firebaseRtdbUrl,
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC91Z63QjQ3UT66BQJXri9gLDEY_Y0QlHQ',
-    appId: '1:1002940114886:android:9195333d78a74111c034c7',
-    messagingSenderId: '1002940114886',
-    projectId: 'kidguard-fadf9',
-    storageBucket: 'kidguard-fadf9.firebasestorage.app',
+    apiKey: 'YOUR-API-KEY',
+    appId: 'APP-ID',
+    messagingSenderId:'ID',
+    projectId: 'YOUR-PROJECT-ID',
+    storageBucket: 'BUCKET',
     databaseURL: firebaseRtdbUrl,
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC91Z63QjQ3UT66BQJXri9gLDEY_Y0QlHQ',
-    appId: '1:1002940114886:ios:974bedf44794363ac034c7',
-    messagingSenderId: '1002940114886',
-    projectId: 'kidguard-fadf9',
-    storageBucket: 'kidguard-fadf9.firebasestorage.app',
-    iosBundleId: 'com.example.kidguard',
+    apiKey: 'YOUR-API-KEY',
+    appId: 'APP-ID',
+    messagingSenderId: 'ID',
+    projectId: 'YOUR-PROJECT-ID',
+    storageBucket: 'BUCKET',
+    iosBundleId: 'BUNDEL-ID',
     databaseURL: firebaseRtdbUrl,
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyC91Z63QjQ3UT66BQJXri9gLDEY_Y0QlHQ',
-    appId: '1:1002940114886:ios:974bedf44794363ac034c7',
-    messagingSenderId: '1002940114886',
-    projectId: 'kidguard-fadf9',
-    storageBucket: 'kidguard-fadf9.firebasestorage.app',
-    iosBundleId: 'com.example.kidguard',
+    apiKey: 'YOUR-API-KEY',
+    appId: 'APP-ID',
+    messagingSenderId: 'ID',
+    projectId: 'YOUR-PROJECT-ID',
+    storageBucket: 'BUCKET',
+    iosBundleId: 'BUNDEL-ID',
     databaseURL: firebaseRtdbUrl,
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCwf-g2AydH4u0QzGxiqdqMbIgkADSA4Uo',
-    appId: '1:1002940114886:web:46bd656a5768f7f7c034c7',
-    messagingSenderId: '1002940114886',
-    projectId: 'kidguard-fadf9',
-    authDomain: 'kidguard-fadf9.firebaseapp.com',
-    storageBucket: 'kidguard-fadf9.firebasestorage.app',
-    measurementId: 'G-6LSGFSJQQT',
+    apiKey: 'YOUR-API-KEY',
+    appId: 'APP-ID',
+    messagingSenderId: 'ID',
+    projectId: 'YOUR-PROJECT-ID',
+    authDomain: 'AUTH-DOMAIN',
+    storageBucket: 'BUCKET-ID',
+    measurementId: 'MEASUREMENT-ID',
     databaseURL: firebaseRtdbUrl,
   );
 }
